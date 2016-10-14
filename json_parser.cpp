@@ -189,3 +189,11 @@ TEST_CASE( "False", "[json_parser]" )
         get_tokens( "false" ),
         tokens( { Token::False } ));
 }
+
+TEST_CASE( "Bad token", "[json_parser]" )
+{
+    // TODO: doesn't seem ideal; probably want to see a parse error here rather than nothing.
+    REQUIRE_EQUAL(
+        get_tokens( "moustache" ),
+        tokens( {} ));
+}
