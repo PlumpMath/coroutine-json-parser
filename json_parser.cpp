@@ -175,3 +175,17 @@ TEST_CASE( "Null", "[json_parser]" )
         tokens( {
             Token::Null } ));
 }
+
+TEST_CASE( "True", "[json_parser]" )
+{
+    REQUIRE_EQUAL(
+        get_tokens( "true" ),
+        tokens( { Token::True } ));
+}
+
+TEST_CASE( "False", "[json_parser]" )
+{
+    REQUIRE_EQUAL(
+        get_tokens( "false" ),
+        tokens( { Token::False } ));
+}
