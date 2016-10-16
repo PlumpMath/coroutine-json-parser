@@ -14,11 +14,11 @@ std::ostream& operator<<( std::ostream& os, Token tok )
 {
     switch (tok)
     {
-        case Token::None:   return os << "None";
-        case Token::Null:   return os << "Null";
-        case Token::True:   return os << "True";
-        case Token::False:  return os << "False";
-        default:            return os << "Invalid";
+        case Token::Invalid: return os << "Invalid";
+        case Token::Null:    return os << "Null";
+        case Token::True:    return os << "True";
+        case Token::False:   return os << "False";
+        default:             return os << "<- ERROR: unknown Token ->";
     }
 }
 
@@ -58,21 +58,24 @@ namespace
             assert( !eof              && "get_keyword expected !EOF");
             assert( std::isalpha( c ) && "get_keyword expected an alpha character");
 
-            std::string s;
+            std::string token;
             do
             {
-                s += c;
+                token += c;
                 consume_char();
             } while (!eof && std::isalpha( c ));
 
-            if (s == "null")
+            if (token == "null")
                 writer( Token::Null );
-            else if (s == "true")
+            else if (token == "true")
                 writer( Token::True );
-            else if (s == "false")
+            else if (token == "false")
                 writer( Token::False );
             else
-                eof = true; /// TODO: not true! should push 'Invalid' or some such
+            {
+                std::cerr << "Invalid token '" << token << "'\n";
+                writer( Token::Invalid );
+            }
         }
 
         void consume_char()
