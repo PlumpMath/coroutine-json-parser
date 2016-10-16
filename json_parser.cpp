@@ -5,6 +5,8 @@
 #include <sstream>
 #include <string>
 
+#include <boost/coroutine/asymmetric_coroutine.hpp>
+
 namespace pyjamas
 {
 
@@ -13,7 +15,6 @@ std::ostream& operator<<( std::ostream& os, Token tok )
     switch (tok)
     {
         case Token::None:   return os << "None";
-        case Token::End:    return os << "End";
         case Token::Null:   return os << "Null";
         case Token::True:   return os << "True";
         case Token::False:  return os << "False";
@@ -21,63 +22,72 @@ std::ostream& operator<<( std::ostream& os, Token tok )
     }
 }
 
-JSONParser::JSONParser( std::istream& in ):
-        in( in ),
-        error( false ),
-        token( Token::None )
+
+namespace
 {
-    consume_char();
-}
+    struct Lexer
+    {
+        using OutChannel       = boost::coroutines::asymmetric_coroutine< Token >;
+        using OutChannelWriter = OutChannel::push_type;
+        using OutChannelReader = OutChannel::pull_type;
 
-auto JSONParser::get_token() -> Token
-{
-    if (error)
-        return Token::End;
-
-    while (!error and std::isspace( c ))
-        consume_char();
-
-    if (error)
-        return Token::End;
-
-    return get_keyword();
-}
-
-
-auto JSONParser::get_keyword() -> Token
-{
-    auto get_string = [&] {
-        std::string s;
-        while (!error && std::isalpha( c ))
+        Lexer( std::istream& in, OutChannelWriter writer ):
+            in{ in },
+            eof{ false },
+            writer{ std::move( writer )}
         {
-            s += c;
             consume_char();
         }
 
-        return s;
+        void run()
+        {
+            while (!eof)
+            {
+                if (std::isspace( c ))
+                    consume_char();
+                else if (std::isalpha( c ))
+                    get_keyword();
+                else
+                    std::cout << "Invalid character " << c << " (" << int(c) << ")\n";
+            }
+        }
+
+    private:
+        void get_keyword()
+        {
+            assert( !eof              && "get_keyword expected !EOF");
+            assert( std::isalpha( c ) && "get_keyword expected an alpha character");
+
+            std::string s;
+            do
+            {
+                s += c;
+                consume_char();
+            } while (!eof && std::isalpha( c ));
+
+            if (s == "null")
+                writer( Token::Null );
+            else if (s == "true")
+                writer( Token::True );
+            else if (s == "false")
+                writer( Token::False );
+            else
+                eof = true; /// TODO: not true! should push 'Invalid' or some such
+        }
+
+        void consume_char()
+        {
+            in.get( c );
+            if (!in)
+                eof = true;
+        }
+
+        std::istream&     in;
+        char              c;
+        bool              eof;
+        OutChannelWriter  writer;
     };
-
-    const auto& s = get_string();
-    if (s == "null")
-        return Token::Null;
-    if (s == "true")
-        return Token::True;
-    if (s == "false")
-        return Token::False;
-
-    return Token::End;
-}
-
-
-void JSONParser::consume_char()
-{
-    assert( !error && "consume_char() should not be called when error == true" );
-
-    in.get( c );
-    if (!in)
-        error = true;
-}
-
+} // unnamed NS
 
 
 // TODO; make this take a coroutine to give tokens to
@@ -85,15 +95,18 @@ void JSONParser::consume_char()
 auto get_tokens( const char* string ) -> std::vector< Token >
 {
     std::istringstream input{ string };
-    auto parser = JSONParser{ input };
-
     auto tokens = std::vector< Token >{};
-    auto token = parser.get_token();
-    while (token != Token::End)
-    {
-        tokens.push_back( token );
-        token = parser.get_token();
-    }
+
+    Lexer lex( input, Lexer::OutChannelWriter{ [&](Lexer::OutChannelReader& reader) {
+        while (reader)
+        {
+            auto token = reader.get();
+            tokens.push_back( token );
+            reader();
+        }
+    }} );
+
+    lex.run();
 
     return tokens;
 }
