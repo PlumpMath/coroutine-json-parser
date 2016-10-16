@@ -2,7 +2,7 @@ CXX=g++
 CXXFLAGS=-Wall -std=c++1z -g
 
 TEST_FLAGS=-I.
-TEST_LIBS=catch_main.o
+TEST_LIBS=catch_main.o -lboost_coroutine -lboost_system
 
 .PHONY: all tests check
 

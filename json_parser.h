@@ -1,36 +1,40 @@
 #pragma  once
 #include <iosfwd>
+#include <string>
 #include <vector>
+
+#include <boost/optional.hpp> // TODO: to std::optional?
 
 namespace pyjamas
 {
-    enum class Token
+    enum class TokenType
     {
         None,
-        End,
+        Invalid,
         Null,
         True,
         False
     };
 
-    std::ostream& operator<<( std::ostream& os, Token tok );
+    struct Token
+    {
+        Token( TokenType t ):
+            type{ t }
+        {}
+
+        Token( TokenType t, std::string text ):
+            type{ t },
+            text{ std::move( text )}
+        {}
+
+        TokenType type;
+        boost::optional< std::string > text;
+    };
+
+
+    bool operator==( const Token& a, const Token& b );
+
+    std::ostream& operator<<( std::ostream& os, const Token& tok );
 
     auto get_tokens( const char* string ) -> std::vector< Token >;
-
-    struct JSONParser
-    {
-        JSONParser( std::istream& in );
-
-        auto get_token() -> Token;
-
-    private:
-        auto get_keyword() -> Token;
-
-        void consume_char();
-
-        std::istream&  in;
-        char           c;
-        bool           error;
-        Token          token; //< Result
-    };
 }

@@ -6,22 +6,30 @@
 #include <string>
 
 #include <boost/coroutine/asymmetric_coroutine.hpp>
+#include <boost/optional/optional_io.hpp>
 
 namespace pyjamas
 {
 
-std::ostream& operator<<( std::ostream& os, Token tok )
+std::ostream& operator<<( std::ostream& os, const Token& tok )
 {
-    switch (tok)
+    switch (tok.type)
     {
-        case Token::Invalid: return os << "Invalid";
-        case Token::Null:    return os << "Null";
-        case Token::True:    return os << "True";
-        case Token::False:   return os << "False";
-        default:             return os << "<- ERROR: unknown Token ->";
+        case TokenType::Invalid: return os << "Invalid \"" << tok.text << '"';
+        case TokenType::Null:    return os << "Null";
+        case TokenType::True:    return os << "True";
+        case TokenType::False:   return os << "False";
+        default:                 return os << "<- ERROR: unknown Token ->";
     }
 }
 
+
+bool operator==( const Token& a, const Token& b )
+{
+    return
+        a.type == b.type &&
+        a.text == b.text;
+}
 
 namespace
 {
@@ -66,15 +74,15 @@ namespace
             } while (!eof && std::isalpha( c ));
 
             if (token == "null")
-                writer( Token::Null );
+                writer( TokenType::Null );
             else if (token == "true")
-                writer( Token::True );
+                writer( TokenType::True );
             else if (token == "false")
-                writer( Token::False );
+                writer( TokenType::False );
             else
             {
                 std::cerr << "Invalid token '" << token << "'\n";
-                writer( Token::Invalid );
+                writer( TokenType::Invalid );
             }
         }
 

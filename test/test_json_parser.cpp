@@ -54,7 +54,7 @@ TEST_CASE( "No tokens", "[json_parser]" )
 
 TEST_CASE( "Leading and trailing whitespace is ignored", "[json_parser]" )
 {
-    REQUIRE_EQUAL( get_tokens( " null " ), tokens({ Token::Null }) );
+    REQUIRE_EQUAL( get_tokens( " null " ), tokens({ TokenType::Null }) );
 }
 
 TEST_CASE( "Null", "[json_parser]" )
@@ -62,21 +62,21 @@ TEST_CASE( "Null", "[json_parser]" )
     REQUIRE_EQUAL(
         get_tokens( "null" ),
         tokens( {
-            Token::Null } ));
+            TokenType::Null } ));
 }
 
 TEST_CASE( "True", "[json_parser]" )
 {
     REQUIRE_EQUAL(
         get_tokens( "true" ),
-        tokens( { Token::True } ));
+        tokens( { TokenType::True } ));
 }
 
 TEST_CASE( "False", "[json_parser]" )
 {
     REQUIRE_EQUAL(
         get_tokens( "false" ),
-        tokens( { Token::False } ));
+        tokens( { TokenType::False } ));
 }
 
 TEST_CASE( "Bad token", "[json_parser]" )
@@ -84,5 +84,5 @@ TEST_CASE( "Bad token", "[json_parser]" )
     // TODO: doesn't seem ideal; probably want to see a parse error here rather than nothing.
     REQUIRE_EQUAL(
         get_tokens( "moustache" ),
-        tokens( {} ));
+        tokens( { TokenType::Invalid } ));
 }
