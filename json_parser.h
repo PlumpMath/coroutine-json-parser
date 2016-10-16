@@ -13,7 +13,10 @@ namespace pyjamas
         Invalid,
         Null,
         True,
-        False
+        False,
+        ArrayBegin,
+        ArrayEnd,
+        ItemSeparator
     };
 
     struct Token

@@ -86,3 +86,23 @@ TEST_CASE( "Bad token", "[json_parser]" )
         get_tokens( "moustache" ),
         tokens( { TokenType::Invalid } ));
 }
+
+TEST_CASE( "Arrays", "[json_parser]")
+{
+    REQUIRE_EQUAL(
+        get_tokens( "[]" ),
+        tokens( { TokenType::ArrayBegin, TokenType::ArrayEnd }))
+
+    REQUIRE_EQUAL(
+        get_tokens( "[ ]" ),
+        tokens( { TokenType::ArrayBegin, TokenType::ArrayEnd }))
+
+    REQUIRE_EQUAL(
+        get_tokens( "[true, false]" ),
+        tokens( {
+            TokenType::ArrayBegin,
+            TokenType::True,
+            TokenType::ItemSeparator,
+            TokenType::False,
+            TokenType::ArrayEnd }))
+}

@@ -15,11 +15,14 @@ std::ostream& operator<<( std::ostream& os, const Token& tok )
 {
     switch (tok.type)
     {
-        case TokenType::Invalid: return os << "Invalid \"" << tok.text << '"';
-        case TokenType::Null:    return os << "Null";
-        case TokenType::True:    return os << "True";
-        case TokenType::False:   return os << "False";
-        default:                 return os << "<- ERROR: unknown Token ->";
+        case TokenType::Invalid:        return os << "Invalid \"" << tok.text << '"';
+        case TokenType::Null:           return os << "Null";
+        case TokenType::True:           return os << "True";
+        case TokenType::False:          return os << "False";
+        case TokenType::ArrayBegin:     return os << "ArrayBegin";
+        case TokenType::ArrayEnd:       return os << "ArrayEnd";
+        case TokenType::ItemSeparator:  return os << "ItemSeparator";
+        default:                        return os << "<- ERROR: unknown Token ->";
     }
 }
 
@@ -56,7 +59,17 @@ namespace
                 else if (std::isalpha( c ))
                     get_keyword();
                 else
-                    std::cout << "Invalid character " << c << " (" << int(c) << ")\n";
+                {
+                    switch (c)
+                    {
+                        case '[': writer( TokenType::ArrayBegin );    break;
+                        case ']': writer( TokenType::ArrayEnd );      break;
+                        case ',': writer( TokenType::ItemSeparator ); break;
+                        default:
+                            std::cout << "Invalid character " << c << " (" << int(c) << ")\n";
+                    }
+                    consume_char();
+                }
             }
         }
 
