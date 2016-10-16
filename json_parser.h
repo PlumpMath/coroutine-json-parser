@@ -9,11 +9,11 @@ namespace pyjamas
 {
     enum class TokenType
     {
-        None,
         Invalid,
         Null,
         True,
         False,
+        String,
         ArrayBegin,
         ArrayEnd,
         ItemSeparator

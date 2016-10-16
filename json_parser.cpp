@@ -19,6 +19,7 @@ std::ostream& operator<<( std::ostream& os, const Token& tok )
         case TokenType::Null:           return os << "Null";
         case TokenType::True:           return os << "True";
         case TokenType::False:          return os << "False";
+        case TokenType::String:         os << "String " << &tok << " \"" << std::flush; return os << *tok.text << '"';
         case TokenType::ArrayBegin:     return os << "ArrayBegin";
         case TokenType::ArrayEnd:       return os << "ArrayEnd";
         case TokenType::ItemSeparator:  return os << "ItemSeparator";
@@ -65,6 +66,7 @@ namespace
                         case '[': writer( TokenType::ArrayBegin );    break;
                         case ']': writer( TokenType::ArrayEnd );      break;
                         case ',': writer( TokenType::ItemSeparator ); break;
+                        case '"': get_string(); break;
                         default:
                             std::cout << "Invalid character " << c << " (" << int(c) << ")\n";
                     }
@@ -74,6 +76,30 @@ namespace
         }
 
     private:
+        void get_string()
+        {
+            assert( !eof     && "get_string expected !EOF");
+            assert( c == '"' && "get_string expected '\"'");
+
+            consume_char();
+
+            std::string string;
+            while (!eof && c != '"')
+            {
+                string += c;
+                consume_char();
+            }
+
+            if (eof)
+                writer( Token{ TokenType::Invalid, "Unterminated string" });
+            else
+            {
+                writer( Token{ TokenType::String, std::move( string )});
+                assert( c == '"' );
+                consume_char();
+            }
+        }
+
         void get_keyword()
         {
             assert( !eof              && "get_keyword expected !EOF");

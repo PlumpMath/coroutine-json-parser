@@ -1,4 +1,5 @@
 #include "json_parser.h"
+#include <initializer_list>
 #include <iostream>
 #include <vector>
 
@@ -105,4 +106,20 @@ TEST_CASE( "Arrays", "[json_parser]")
             TokenType::ItemSeparator,
             TokenType::False,
             TokenType::ArrayEnd }))
+}
+
+TEST_CASE( "Strings", "[json_parser]")
+{
+    REQUIRE_EQUAL(
+        get_tokens( R"__("")__" ),
+        tokens( { Token{ TokenType::String, "" } }));
+
+    REQUIRE_EQUAL(
+        get_tokens( R"__("blah")__" ),
+        tokens( { Token{ TokenType::String, "blah" } }));
+}
+
+TEST_CASE( "Strings with escape strings", "[json_parser]")
+{
+
 }
