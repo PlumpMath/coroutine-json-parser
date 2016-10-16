@@ -1,6 +1,6 @@
 #include "json_parser.h"
-#include <initializer_list>
 #include <iostream>
+#include <vector>
 
 #include "catch.hpp"
 
@@ -37,7 +37,7 @@ using namespace catch_aux;
 using TokenSequence = std::vector< Token >;
 using boost::equal;
 
-auto tokens( const std::initializer_list<Token>& toks ) -> const std::initializer_list<Token>&
+auto tokens( const std::initializer_list<Token>& toks ) -> std::vector<Token>
 {
     return toks;
 }
