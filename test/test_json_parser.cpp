@@ -124,6 +124,10 @@ TEST_CASE( "Strings with escape strings", "[json_parser]")
     REQUIRE_EQUAL(
         get_tokens( R"_("\"")_" ),
         tokens( { "\"" }));
+
+    REQUIRE_EQUAL(
+        get_tokens( R"_("\\")_" ),
+        tokens( { R"_(\)_" }));
 }
 
 TEST_CASE( "Invalid escape sequence produces invalid token", "[json_parser]")

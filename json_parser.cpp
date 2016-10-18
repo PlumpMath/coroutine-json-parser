@@ -101,6 +101,11 @@ namespace
                         case '"':
                             /* c already == escape sequence production */
                             break;
+
+                        case '\\':
+                            /* c already == escape sequence production */
+                            break;
+
                         default:
                             std::cout << "Unknown escape sequence \\" << c << std::endl;
                             if (!invalidString)
