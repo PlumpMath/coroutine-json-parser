@@ -90,6 +90,7 @@ namespace
             consume_char();
 
             std::string string;
+            bool invalidString = false;
             while (!eof && c != '"')
             {
                 if (c == '\\')
@@ -102,9 +103,16 @@ namespace
                             break;
                         default:
                             std::cout << "Unknown escape sequence \\" << c << std::endl;
+                            if (!invalidString)
+                            {
+                                invalidString = true;
+                                writer( Token{ Token::invalid, std::string{"Unknown escape sequence \\"} + c });
+                            }
                     }
                 }
-                string += c;
+
+                if (!invalidString)
+                    string += c;
                 consume_char();
             }
 
@@ -112,7 +120,8 @@ namespace
                 writer( Token{ Token::invalid, "Unterminated string" });
             else
             {
-                writer( Token{ std::move( string )});
+                if (!invalidString)
+                    writer( Token{ std::move( string )});
                 assert( c == '"' );
                 consume_char();
             }

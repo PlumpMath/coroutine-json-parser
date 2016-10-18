@@ -126,10 +126,11 @@ TEST_CASE( "Strings with escape strings", "[json_parser]")
         tokens( { "\"" }));
 }
 
-TEST_CASE( "Invalid escape sequence doesn't crash", "[json_parser]")
+TEST_CASE( "Invalid escape sequence produces invalid token", "[json_parser]")
 {
-    // TODO: bit of a shit test, make something reasonable
-    get_tokens( R"_("\"")_" );
+    auto toks = get_tokens( R"_("\%")_" );
+    REQUIRE( toks.size() == 1 );
+    REQUIRE( toks.begin()->type == TokenType::Invalid );
 }
 
 TEST_CASE( "Objects", "[json_parser]")
