@@ -128,6 +128,30 @@ TEST_CASE( "Strings with escape strings", "[json_parser]")
     REQUIRE_EQUAL(
         get_tokens( R"_("\\")_" ),
         tokens( { R"_(\)_" }));
+
+    REQUIRE_EQUAL(
+        get_tokens( R"_("\/")_" ),
+        tokens( { R"_(/)_" }));
+
+    REQUIRE_EQUAL(
+        get_tokens( R"_("\b")_" ),
+        tokens( { "\b" }));
+
+    REQUIRE_EQUAL(
+        get_tokens( R"_("\f")_" ),
+        tokens( { "\f" }));
+
+    REQUIRE_EQUAL(
+        get_tokens( R"_("\n")_" ),
+        tokens( { "\n" }));
+
+    REQUIRE_EQUAL(
+        get_tokens( R"_("\r")_" ),
+        tokens( { "\r" }));
+
+    REQUIRE_EQUAL(
+        get_tokens( R"_("\t")_" ),
+        tokens( { "\t" }));
 }
 
 TEST_CASE( "Invalid escape sequence produces invalid token", "[json_parser]")
