@@ -55,7 +55,7 @@ TEST_CASE( "No tokens", "[json_parser]" )
 
 TEST_CASE( "Leading and trailing whitespace is ignored", "[json_parser]" )
 {
-    REQUIRE_EQUAL( get_tokens( " null " ), tokens({ TokenType::Null }) );
+    REQUIRE_EQUAL( get_tokens( " null " ), tokens({ Token::null }) );
 }
 
 TEST_CASE( "Null", "[json_parser]" )
@@ -63,63 +63,85 @@ TEST_CASE( "Null", "[json_parser]" )
     REQUIRE_EQUAL(
         get_tokens( "null" ),
         tokens( {
-            TokenType::Null } ));
+            Token::null } ));
 }
 
 TEST_CASE( "True", "[json_parser]" )
 {
     REQUIRE_EQUAL(
         get_tokens( "true" ),
-        tokens( { TokenType::True } ));
+        tokens( { true } ));
 }
 
 TEST_CASE( "False", "[json_parser]" )
 {
     REQUIRE_EQUAL(
         get_tokens( "false" ),
-        tokens( { TokenType::False } ));
+        tokens( { false } ));
 }
 
 TEST_CASE( "Bad token", "[json_parser]" )
 {
-    // TODO: doesn't seem ideal; probably want to see a parse error here rather than nothing.
-    REQUIRE_EQUAL(
-        get_tokens( "moustache" ),
-        tokens( { TokenType::Invalid } ));
+    auto ts = get_tokens( "moustache" );
+    REQUIRE( ts.size() == 1 );
+    REQUIRE( TokenType::Invalid == ts.front().type );
 }
 
 TEST_CASE( "Arrays", "[json_parser]")
 {
     REQUIRE_EQUAL(
         get_tokens( "[]" ),
-        tokens( { TokenType::ArrayBegin, TokenType::ArrayEnd }))
+        tokens( { Token::array_begin, Token::array_end }))
 
     REQUIRE_EQUAL(
         get_tokens( "[ ]" ),
-        tokens( { TokenType::ArrayBegin, TokenType::ArrayEnd }))
+        tokens( { Token::array_begin, Token::array_end }))
 
     REQUIRE_EQUAL(
         get_tokens( "[true, false]" ),
         tokens( {
-            TokenType::ArrayBegin,
-            TokenType::True,
-            TokenType::ItemSeparator,
-            TokenType::False,
-            TokenType::ArrayEnd }))
+            Token::array_begin,
+            true,
+            Token::item_separator,
+            false,
+            Token::array_end }))
 }
 
 TEST_CASE( "Strings", "[json_parser]")
 {
     REQUIRE_EQUAL(
         get_tokens( R"__("")__" ),
-        tokens( { Token{ TokenType::String, "" } }));
+        tokens( { Token{ "" } }));
 
     REQUIRE_EQUAL(
         get_tokens( R"__("blah")__" ),
-        tokens( { Token{ TokenType::String, "blah" } }));
+        tokens( { Token{ "blah" } }));
 }
 
 TEST_CASE( "Strings with escape strings", "[json_parser]")
 {
+}
 
+TEST_CASE( "Objects", "[json_parser]")
+{
+    REQUIRE_EQUAL(
+        get_tokens( "{}" ),
+        tokens( { Token::object_begin, Token::object_end }))
+
+    REQUIRE_EQUAL(
+        get_tokens( "{ }" ),
+        tokens( { Token::object_begin, Token::object_end }))
+
+    REQUIRE_EQUAL(
+        get_tokens( "{\"a\": true, \"b\": false}" ),
+        tokens( {
+            Token::object_begin,
+            "a",
+            Token::key_value_separator,
+            true,
+            Token::item_separator,
+            "b",
+            Token::key_value_separator,
+            false,
+            Token::object_end }))
 }
