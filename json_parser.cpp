@@ -92,6 +92,18 @@ namespace
             std::string string;
             while (!eof && c != '"')
             {
+                if (c == '\\')
+                {
+                    consume_char();
+                    switch (c)
+                    {
+                        case '"':
+                            /* c already == escape sequence production */
+                            break;
+                        default:
+                            std::cout << "Unknown escape sequence \\" << c << std::endl;
+                    }
+                }
                 string += c;
                 consume_char();
             }

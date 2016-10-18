@@ -120,6 +120,16 @@ TEST_CASE( "Strings", "[json_parser]")
 
 TEST_CASE( "Strings with escape strings", "[json_parser]")
 {
+    // \" -> "
+    REQUIRE_EQUAL(
+        get_tokens( R"_("\"")_" ),
+        tokens( { "\"" }));
+}
+
+TEST_CASE( "Invalid escape sequence doesn't crash", "[json_parser]")
+{
+    // TODO: bit of a shit test, make something reasonable
+    get_tokens( R"_("\"")_" );
 }
 
 TEST_CASE( "Objects", "[json_parser]")
