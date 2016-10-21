@@ -3,37 +3,11 @@
 #include <iostream>
 #include <vector>
 
-#include "catch.hpp"
+#include <gtest/gtest.h>
 
 #include <boost/range/algorithm/equal.hpp>
 
 using namespace pyjamas;
-
-namespace catch_aux
-{
-    #define PRINT( a )                       \
-    {                                        \
-        std::cerr << #a << " {\n";           \
-        for (const auto& v : a)              \
-            std::cerr << "\t" << v << "\n";  \
-        std::cerr << "}\n";                  \
-    }
-
-    #define REQUIRE_EQUAL( actual_, expected_ )    \
-    {                                              \
-        auto&& actual = actual_;                   \
-        auto&& expected = expected_;               \
-        if ( !equal( actual, expected ))           \
-        {                                          \
-            std::cerr << "REQUIRE_EQUAL\n";        \
-            PRINT(expected);                       \
-            PRINT(actual);                         \
-            FAIL("FAILED");                        \
-        }                                          \
-    }
-}
-
-using namespace catch_aux;
 
 using TokenSequence = std::vector< Token >;
 using boost::equal;
@@ -43,135 +17,135 @@ auto tokens( const std::initializer_list<Token>& toks ) -> std::vector<Token>
     return toks;
 }
 
-TEST_CASE( "No tokens", "[json_parser]" )
+TEST(ut_json_parser, parses_empty_input_and_all_whitespace )
 {
-    REQUIRE_EQUAL( get_tokens( "" ),     tokens({ }) );
-    REQUIRE_EQUAL( get_tokens( " " ),    tokens({ }) );
-    REQUIRE_EQUAL( get_tokens( "\t" ),   tokens({ }) );
-    REQUIRE_EQUAL( get_tokens( "\r" ),   tokens({ }) );
-    REQUIRE_EQUAL( get_tokens( "\n" ),   tokens({ }) );
-    REQUIRE_EQUAL( get_tokens( "\r\n" ), tokens({ }) );
+    EXPECT_EQ( get_tokens( "" ),     tokens({ }) );
+    EXPECT_EQ( get_tokens( " " ),    tokens({ }) );
+    EXPECT_EQ( get_tokens( "\t" ),   tokens({ }) );
+    EXPECT_EQ( get_tokens( "\r" ),   tokens({ }) );
+    EXPECT_EQ( get_tokens( "\n" ),   tokens({ }) );
+    EXPECT_EQ( get_tokens( "\r\n" ), tokens({ }) );
 }
 
-TEST_CASE( "Leading and trailing whitespace is ignored", "[json_parser]" )
+TEST( ut_json_parser, leading_and_trailing_whitespace_is_ignored )
 {
-    REQUIRE_EQUAL( get_tokens( " null " ), tokens({ Token::null }) );
+    EXPECT_EQ( get_tokens( " null " ), tokens({ Token::null }) );
 }
 
-TEST_CASE( "Null", "[json_parser]" )
+TEST( ut_json_parser, parses_null )
 {
-    REQUIRE_EQUAL(
+    EXPECT_EQ(
         get_tokens( "null" ),
         tokens( {
             Token::null } ));
 }
 
-TEST_CASE( "True", "[json_parser]" )
+TEST( ut_json_parser, parses_true )
 {
-    REQUIRE_EQUAL(
+    EXPECT_EQ(
         get_tokens( "true" ),
         tokens( { true } ));
 }
 
-TEST_CASE( "False", "[json_parser]" )
+TEST( ut_json_parser, parses_false )
 {
-    REQUIRE_EQUAL(
+    EXPECT_EQ(
         get_tokens( "false" ),
         tokens( { false } ));
 }
 
-TEST_CASE( "Bad token", "[json_parser]" )
+TEST(ut_json_parser,  returns_bad_token_for_some_parse_errors )
 {
     auto ts = get_tokens( "moustache" );
-    REQUIRE( ts.size() == 1 );
-    REQUIRE( TokenType::Invalid == ts.front().type );
+    ASSERT_TRUE( ts.size() == 1 );
+    ASSERT_TRUE( TokenType::Invalid == ts.front().type );
 }
 
-TEST_CASE( "Arrays", "[json_parser]")
+TEST( ut_json_parser, parses_array_tokens )
 {
-    REQUIRE_EQUAL(
+    EXPECT_EQ(
         get_tokens( "[]" ),
-        tokens( { Token::array_begin, Token::array_end }))
+        tokens( { Token::array_begin, Token::array_end }));
 
-    REQUIRE_EQUAL(
+    EXPECT_EQ(
         get_tokens( "[ ]" ),
-        tokens( { Token::array_begin, Token::array_end }))
+        tokens( { Token::array_begin, Token::array_end }));
 
-    REQUIRE_EQUAL(
+    EXPECT_EQ(
         get_tokens( "[true, false]" ),
         tokens( {
             Token::array_begin,
             true,
             Token::item_separator,
             false,
-            Token::array_end }))
+            Token::array_end }));
 }
 
-TEST_CASE( "Strings", "[json_parser]")
+TEST( ut_json_parser, parses_strings )
 {
-    REQUIRE_EQUAL(
+    EXPECT_EQ(
         get_tokens( R"__("")__" ),
         tokens( { Token{ "" } }));
 
-    REQUIRE_EQUAL(
+    EXPECT_EQ(
         get_tokens( R"__("blah")__" ),
         tokens( { Token{ "blah" } }));
 }
 
-TEST_CASE( "Strings with escape strings", "[json_parser]")
+TEST( ut_json_parser, parses_strings_with_escape_sequences )
 {
     // \" -> "
-    REQUIRE_EQUAL(
+    EXPECT_EQ(
         get_tokens( R"_("\"")_" ),
         tokens( { "\"" }));
 
-    REQUIRE_EQUAL(
+    EXPECT_EQ(
         get_tokens( R"_("\\")_" ),
         tokens( { R"_(\)_" }));
 
-    REQUIRE_EQUAL(
+    EXPECT_EQ(
         get_tokens( R"_("\/")_" ),
         tokens( { R"_(/)_" }));
 
-    REQUIRE_EQUAL(
+    EXPECT_EQ(
         get_tokens( R"_("\b")_" ),
         tokens( { "\b" }));
 
-    REQUIRE_EQUAL(
+    EXPECT_EQ(
         get_tokens( R"_("\f")_" ),
         tokens( { "\f" }));
 
-    REQUIRE_EQUAL(
+    EXPECT_EQ(
         get_tokens( R"_("\n")_" ),
         tokens( { "\n" }));
 
-    REQUIRE_EQUAL(
+    EXPECT_EQ(
         get_tokens( R"_("\r")_" ),
         tokens( { "\r" }));
 
-    REQUIRE_EQUAL(
+    EXPECT_EQ(
         get_tokens( R"_("\t")_" ),
         tokens( { "\t" }));
 }
 
-TEST_CASE( "Invalid escape sequence produces invalid token", "[json_parser]")
+TEST( ut_json_parser, invalid_escape_sequence_produces_invalid_token )
 {
     auto toks = get_tokens( R"_("\%")_" );
-    REQUIRE( toks.size() == 1 );
-    REQUIRE( toks.begin()->type == TokenType::Invalid );
+    ASSERT_TRUE( toks.size() == 1 );
+    ASSERT_TRUE( toks.begin()->type == TokenType::Invalid );
 }
 
-TEST_CASE( "Objects", "[json_parser]")
+TEST( ut_json_parser, parses_object_tokens )
 {
-    REQUIRE_EQUAL(
+    EXPECT_EQ(
         get_tokens( "{}" ),
-        tokens( { Token::object_begin, Token::object_end }))
+        tokens( { Token::object_begin, Token::object_end }));
 
-    REQUIRE_EQUAL(
+    EXPECT_EQ(
         get_tokens( "{ }" ),
-        tokens( { Token::object_begin, Token::object_end }))
+        tokens( { Token::object_begin, Token::object_end }));
 
-    REQUIRE_EQUAL(
+    EXPECT_EQ(
         get_tokens( "{\"a\": true, \"b\": false}" ),
         tokens( {
             Token::object_begin,
@@ -182,5 +156,5 @@ TEST_CASE( "Objects", "[json_parser]")
             "b",
             Token::key_value_separator,
             false,
-            Token::object_end }))
+            Token::object_end }));
 }
