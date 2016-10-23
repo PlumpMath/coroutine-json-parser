@@ -14,9 +14,8 @@ namespace pyjamas
 
 // TODO; make this take a coroutine to give tokens to
 // or a channel of some sort? signal slot? fiber?
-auto get_tokens( const char* string ) -> std::vector< Token >
+auto get_tokens( std::istream& input ) -> std::vector< Token >
 {
-    std::istringstream input{ string };
     auto tokens = std::vector< Token >{};
 
     Lexer lex( input, Lexer::OutChannelWriter{ [&](Lexer::OutChannelReader& reader) {
@@ -32,5 +31,12 @@ auto get_tokens( const char* string ) -> std::vector< Token >
 
     return tokens;
 }
+
+auto get_tokens( const char* string ) -> std::vector< Token >
+{
+    std::istringstream in{ string };
+    return get_tokens( in );
+}
+
 
 }
