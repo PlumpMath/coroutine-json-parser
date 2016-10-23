@@ -1,4 +1,4 @@
-#include "json_parser.h"
+#include "json-parser.h"
 #include <initializer_list>
 #include <iostream>
 #include <vector>
@@ -17,7 +17,7 @@ auto tokens( const std::initializer_list<Token>& toks ) -> std::vector<Token>
     return toks;
 }
 
-TEST(ut_json_parser, parses_empty_input_and_all_whitespace )
+TEST(ut_json_lexer, parses_empty_input_and_all_whitespace )
 {
     EXPECT_EQ( get_tokens( "" ),     tokens({ }) );
     EXPECT_EQ( get_tokens( " " ),    tokens({ }) );
@@ -27,12 +27,12 @@ TEST(ut_json_parser, parses_empty_input_and_all_whitespace )
     EXPECT_EQ( get_tokens( "\r\n" ), tokens({ }) );
 }
 
-TEST( ut_json_parser, leading_and_trailing_whitespace_is_ignored )
+TEST( ut_json_lexer, leading_and_trailing_whitespace_is_ignored )
 {
     EXPECT_EQ( get_tokens( " null " ), tokens({ Token::null }) );
 }
 
-TEST( ut_json_parser, parses_null )
+TEST( ut_json_lexer, parses_null )
 {
     EXPECT_EQ(
         get_tokens( "null" ),
@@ -40,28 +40,28 @@ TEST( ut_json_parser, parses_null )
             Token::null } ));
 }
 
-TEST( ut_json_parser, parses_true )
+TEST( ut_json_lexer, parses_true )
 {
     EXPECT_EQ(
         get_tokens( "true" ),
         tokens( { true } ));
 }
 
-TEST( ut_json_parser, parses_false )
+TEST( ut_json_lexer, parses_false )
 {
     EXPECT_EQ(
         get_tokens( "false" ),
         tokens( { false } ));
 }
 
-TEST(ut_json_parser,  returns_bad_token_for_some_parse_errors )
+TEST(ut_json_lexer,  returns_bad_token_for_some_parse_errors )
 {
     auto ts = get_tokens( "moustache" );
     ASSERT_TRUE( ts.size() == 1 );
     ASSERT_TRUE( TokenType::Invalid == ts.front().type );
 }
 
-TEST( ut_json_parser, parses_array_tokens )
+TEST( ut_json_lexer, parses_array_tokens )
 {
     EXPECT_EQ(
         get_tokens( "[]" ),
@@ -81,7 +81,7 @@ TEST( ut_json_parser, parses_array_tokens )
             Token::array_end }));
 }
 
-TEST( ut_json_parser, parses_strings )
+TEST( ut_json_lexer, parses_strings )
 {
     EXPECT_EQ(
         get_tokens( R"__("")__" ),
@@ -92,7 +92,7 @@ TEST( ut_json_parser, parses_strings )
         tokens( { Token{ "blah" } }));
 }
 
-TEST( ut_json_parser, parses_strings_with_escape_sequences )
+TEST( ut_json_lexer, parses_strings_with_escape_sequences )
 {
     // \" -> "
     EXPECT_EQ(
@@ -128,14 +128,14 @@ TEST( ut_json_parser, parses_strings_with_escape_sequences )
         tokens( { "\t" }));
 }
 
-TEST( ut_json_parser, invalid_escape_sequence_produces_invalid_token )
+TEST( ut_json_lexer, invalid_escape_sequence_produces_invalid_token )
 {
     auto toks = get_tokens( R"_("\%")_" );
     ASSERT_TRUE( toks.size() == 1 );
     ASSERT_TRUE( toks.begin()->type == TokenType::Invalid );
 }
 
-TEST( ut_json_parser, parses_object_tokens )
+TEST( ut_json_lexer, parses_object_tokens )
 {
     EXPECT_EQ(
         get_tokens( "{}" ),
