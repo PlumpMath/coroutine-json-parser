@@ -9,7 +9,7 @@ TEST_LIBS=gtest_main.o -lgtest -lboost_coroutine -lboost_system -lpthread
 all: tests libpyjamas.so
 
 clean:
-	rm json-parser.o libpyjamas.so test-json-parser
+	rm json-parser.o lexer.o token.o libpyjamas.so test-json-parser
 
 tests: test-json-parser
 
@@ -19,12 +19,18 @@ check: tests
 gtest_main.o: /usr/src/gtest/src/gtest_main.cc
 	$(CXX) -c $< -o $@
 
-libpyjamas.so: json-parser.o
+libpyjamas.so: json-parser.o lexer.o token.o
 	$(CXX) $(CXXFLAGS) -fPIC -shared $+ -o $@
 
-json-parser.o: json_parser.cpp json_parser.h
+json-parser.o: json_parser.cpp json_parser.h lexer.h token.h
 	$(CXX) $(CXXFLAGS) -fPIC -c $< -o $@
 
-test-json-parser: gtest_main.o test/test_json_parser.cpp json_parser.h
+lexer.o: lexer.cpp lexer.h token.h
+	$(CXX) $(CXXFLAGS) -fPIC -c $< -o $@
+
+token.o: token.cpp token.h
+	$(CXX) $(CXXFLAGS) -fPIC -c $< -o $@
+
+test-json-parser: gtest_main.o libpyjamas.so test/test_json_parser.cpp json_parser.h
 	$(CXX) $(CXXFLAGS) test/test_json_parser.cpp -o $@ $(TEST_FLAGS) -lpyjamas $(TEST_LIBS)
 
