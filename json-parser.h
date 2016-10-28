@@ -18,7 +18,7 @@ namespace pyjamas
     struct JsonValue;
 
     struct array {
-        using child_container = std::vector< std::shared_ptr< const JsonValue >>;
+        using child_container = std::vector< JsonValue >;
         child_container children;
     };
 

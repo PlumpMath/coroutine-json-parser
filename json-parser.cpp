@@ -10,7 +10,6 @@
 #include <boost/coroutine/asymmetric_coroutine.hpp>
 #include <boost/range/algorithm/copy.hpp>
 #include <boost/range/algorithm/equal.hpp>
-#include <boost/range/adaptor/indirected.hpp>
 
 namespace pyjamas
 {
@@ -119,9 +118,7 @@ bool operator==( const JsonValue& a, const JsonValue& b )
 
 bool operator==( const array& a, const array& b )
 {
-    return boost::equal(
-        a.children | boost::adaptors::indirected,
-        b.children | boost::adaptors::indirected );
+    return boost::equal( a.children, b.children );
 }
 
 bool operator!=( const array& a, const array& b )
@@ -140,7 +137,7 @@ std::ostream& operator<<( std::ostream& os, const array& arr )
             first = false;
         else
             os << ", ";
-        os << *v;
+        os << v;
     }
     return os << "]";
 }
