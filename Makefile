@@ -9,13 +9,13 @@ TEST_LIBS=gtest_main.o -lgtest -lboost_coroutine -lboost_system -lpthread
 all: tests libpyjamas.so
 
 clean:
-	rm json-parser.o lexer.o token.o libpyjamas.so test-json-lexer
+	rm json-parser.o lexer.o token.o libpyjamas.so test-json-lexer test-json-parser
 
-tests: test-json-lexer
+tests: test-json-lexer test-json-parser
 
 check: tests
-	./test-json-lexer \
-	# ./test-json-parser
+	./test-json-lexer
+	./test-json-parser
 
 gtest_main.o: /usr/src/gtest/src/gtest_main.cc
 	$(CXX) -c $< -o $@
@@ -35,6 +35,6 @@ token.o: token.cpp token.h
 test-json-lexer: gtest_main.o libpyjamas.so test/test-json-lexer.cpp lexer.h
 	$(CXX) $(CXXFLAGS) test/test-json-lexer.cpp -o $@ $(TEST_FLAGS) -lpyjamas $(TEST_LIBS)
 
-# test-json-parser: gtest_main.o libpyjamas.so test/test-json-parser.cpp json-parser.h
-# 	$(CXX) $(CXXFLAGS) test/test-json-parser.cpp -o $@ $(TEST_FLAGS) -lpyjamas $(TEST_LIBS)
+test-json-parser: gtest_main.o libpyjamas.so test/test-json-parser.cpp json-parser.h
+	$(CXX) $(CXXFLAGS) test/test-json-parser.cpp -o $@ $(TEST_FLAGS) -lpyjamas $(TEST_LIBS)
 
