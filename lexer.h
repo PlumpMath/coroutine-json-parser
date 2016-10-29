@@ -17,6 +17,8 @@ namespace pyjamas
 
         void run();
 
+        bool at_end() const { return eof; }
+
     private:
         void get_string();
 

@@ -59,8 +59,6 @@ namespace pyjamas
 
         auto channel_writer() -> InChannelWriter;
 
-        void run( InChannelReader& reader );
-
     private:
         OutChannelWriter writer;
     };
@@ -68,9 +66,9 @@ namespace pyjamas
 
     // -------------------------------------------------------------------------
     //
-    auto parse_json( std::istream& input ) -> JsonValue;
+    auto parse_json( std::istream& input ) -> boost::optional<JsonValue>;
 
-    auto parse_json( const char* string ) -> JsonValue;
+    auto parse_json( const char* string ) -> boost::optional<JsonValue>;
 
     // -------------------------------------------------------------------------
     // implementation details

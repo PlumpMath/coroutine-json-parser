@@ -13,6 +13,90 @@
 
 namespace pyjamas
 {
+namespace
+{
+    /// Returns a JSON value by parsing tokens yielded from the given tokenChannel.
+    ///
+    /// On success the value will be returned, and the tokenChannel will either have finished
+    /// producing tokens or the next token will be available through it.
+    ///
+    /// On error boost::none will be returned; the tokenChannel state is unspecified.
+    auto get_value( Parser::InChannelReader& tokenChannel ) -> boost::optional< JsonValue >
+    {
+        if (!tokenChannel)
+        {
+            std::cerr << "Token source has dried up!" << std::endl;
+            return boost::none;
+        }
+
+        // TODO: use a sub-function that returns an optional Token to wrap up the
+        //       repeated [check tokenChannel, print message, get token] sequence
+
+        auto token = tokenChannel.get();
+        switch (token.type)
+        {
+            case TokenType::Null:
+                return JsonValue{ null{} };
+
+            case TokenType::ArrayBegin:
+            {
+                tokenChannel();
+
+                array arrayValue;
+                while (tokenChannel && tokenChannel.get().type != TokenType::ArrayEnd)
+                {
+                    auto element = get_value( tokenChannel );
+                    if (!element)
+                        return element;
+                    arrayValue.children.emplace_back( std::move( *element ));
+
+                    tokenChannel();
+                    if (!tokenChannel)
+                    {
+                        std::cerr << "Expected item-separator or array-end but no more tokens" << std::endl;
+                        return boost::none;
+                    }
+
+                    if (tokenChannel.get().type == TokenType::ItemSeparator)
+                    {
+                        tokenChannel();
+                        if (tokenChannel.get().type == TokenType::ArrayEnd)
+                        {
+                            std::cerr << "Expected array-element after item-separator but got array-end" << std::endl;
+                            return boost::none;
+                        }
+                    }
+                    else if (tokenChannel.get().type != TokenType::ArrayEnd)
+                    {
+                        std::cerr << "Expected array-end after array-element" << std::endl;
+                        return boost::none;
+                    }
+                }
+
+                if (!tokenChannel)
+                {
+                    std::cerr << "Expected array-element or array-end but no more tokens" << std::endl;
+                    return boost::none;
+                }
+
+                assert( tokenChannel.get().type == TokenType::ArrayEnd );
+                return JsonValue{ std::move( arrayValue )};
+            }
+
+            case TokenType::ArrayEnd:
+            case TokenType::ItemSeparator:
+                std::cerr << "Unexpected token " << token << std::endl;
+                // fall-through to next case
+
+            case TokenType::Invalid:
+                return boost::none;
+
+            default:
+                std::cerr << "Invalid/unknown token " << token << std::endl;
+                return boost::none;
+        }
+    }
+} // unnamed NS
 
 Parser::Parser( OutChannelWriter writer ):
     writer{ std::move( writer )}
@@ -22,48 +106,19 @@ auto Parser::channel_writer() -> InChannelWriter
 {
     return InChannelWriter{
         [this](InChannelReader& reader) {
-            run( reader );
+            if (!writer)
+            {
+                std::cerr << "Parser cannot operate: output channel closed" << std::endl;
+                return;
+            }
+
+            auto value = get_value( reader );
+            if (value)
+                writer( std::move( *value ));
         }};
 }
 
-void Parser::run( InChannelReader& reader )
-{
-    while (reader)
-    {
-        auto token = reader.get();
-        switch (token.type)
-        {
-            case TokenType::Null:
-                writer( null{} );
-                break;
 
-            case TokenType::ArrayBegin:
-                reader();
-                if (!reader)
-                {
-                    std::cerr << "Expected array-element or array-end but no more tokens" << std::endl;
-                    return;
-                }
-
-                token = reader.get();
-                if (token.type != TokenType::ArrayEnd)
-                {
-                    std::cerr << "Expected array-end but got something else" << std::endl;
-                    return;
-                }
-                writer( JsonValue{ array{} });
-                break;
-
-            default:
-                writer( JsonValue{ null{} });
-        }
-
-        reader();
-    }
-}
-
-// TODO; make this take a coroutine to give tokens to
-// or a channel of some sort? signal slot? fiber?
 auto get_tokens( std::istream& input ) -> std::vector< Token >
 {
     auto tokens = std::vector< Token >{};
@@ -82,21 +137,23 @@ auto get_tokens( std::istream& input ) -> std::vector< Token >
     return tokens;
 }
 
-auto parse_json( std::istream& input ) -> JsonValue
+auto parse_json( std::istream& input ) -> boost::optional< JsonValue >
 {
-    JsonValue value{ null{} };
+    boost::optional<JsonValue> value;
 
     Parser parser( Parser::OutChannelWriter{ [&](Parser::OutChannelReader& reader) {
-        while (reader)
-        {
+        if (reader)
             value = reader.get();
-            reader();
-        }
     }} );
 
     Lexer lex{ input, parser.channel_writer() };
     lex.run();
 
+    if (!lex.at_end())
+    {
+        std::cerr << "Finished parsing but still have trailing characters\n";
+        return boost::none;
+    }
     return value;
 }
 
@@ -171,7 +228,7 @@ auto get_tokens( const char* string ) -> std::vector< Token >
     return get_tokens( in );
 }
 
-auto parse_json( const char* string ) -> JsonValue
+auto parse_json( const char* string ) -> boost::optional<JsonValue>
 {
     std::istringstream in{ string };
     return parse_json( in );
