@@ -18,7 +18,7 @@ Lexer::Lexer( std::istream& in, OutChannelWriter writer ):
 
 void Lexer::run()
 {
-    while (!eof)
+    while (writer && !eof)
     {
         if (std::isspace( c ))
             consume_char();
