@@ -13,7 +13,7 @@ clean:
 
 tests: test-json-lexer test-json-parser
 
-check: tests
+check: tests libpyjamas.so
 	./test-json-lexer
 	./test-json-parser
 
@@ -32,9 +32,9 @@ lexer.o: lexer.cpp lexer.h token.h
 token.o: token.cpp token.h
 	$(CXX) $(CXXFLAGS) -fPIC -c $< -o $@
 
-test-json-lexer: gtest_main.o libpyjamas.so test/test-json-lexer.cpp lexer.h
+test-json-lexer: gtest_main.o test/test-json-lexer.cpp lexer.h token.h | libpyjamas.so
 	$(CXX) $(CXXFLAGS) test/test-json-lexer.cpp -o $@ $(TEST_FLAGS) -lpyjamas $(TEST_LIBS)
 
-test-json-parser: gtest_main.o libpyjamas.so test/test-json-parser.cpp json-parser.h
+test-json-parser: gtest_main.o test/test-json-parser.cpp json-parser.h token.h | libpyjamas.so
 	$(CXX) $(CXXFLAGS) test/test-json-parser.cpp -o $@ $(TEST_FLAGS) -lpyjamas $(TEST_LIBS)
 
