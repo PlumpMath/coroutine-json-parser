@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <cctype>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -82,6 +83,12 @@ namespace
                 assert( tokenChannel.get().type == TokenType::ArrayEnd );
                 return JsonValue{ std::move( arrayValue )};
             }
+
+            case TokenType::True:
+                return JsonValue{ true };
+
+            case TokenType::False:
+                return JsonValue{ false };
 
             case TokenType::ArrayEnd:
             case TokenType::ItemSeparator:
@@ -183,6 +190,11 @@ bool operator!=( const array& a, const array& b )
     return !(a == b);
 }
 
+std::ostream& operator<<( std::ostream& os, const boolean& b )
+{
+    return os << std::boolalpha << b.value;
+}
+
 std::ostream& operator<<( std::ostream& os, const array& arr )
 {
     os << "[";
@@ -202,6 +214,7 @@ std::ostream& operator<<( std::ostream& os, const array& arr )
 namespace {
     struct JsonValuePrinter
     {
+        // TODO: a single operator() template should suffice
         void operator()( const array& v ) const
         {
             *out << v;
@@ -210,6 +223,11 @@ namespace {
         void operator()( null ) const
         {
             *out << "null";
+        }
+
+        void operator()( boolean b ) const
+        {
+            *out << b;
         }
 
         std::ostream* out;

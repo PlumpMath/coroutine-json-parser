@@ -28,10 +28,10 @@ TEST(ut_json_parser, array )
     EXPECT_EQ(
         JsonValue( array{ {
             JsonValue( null{} ),
-            JsonValue( null{} )
+            JsonValue( boolean{ false } ),
+            JsonValue( boolean{ true  } ),
         }} ),
-        parse_json( "[null, null]" ) );
-}
+        parse_json( "[null, false, true]" ) );}
 
 TEST(ut_json_parser, bad_array )
 {

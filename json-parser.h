@@ -15,6 +15,13 @@ namespace pyjamas
     bool operator==( null, null ) { return true; }
     bool operator!=( null, null ) { return false; }
 
+    struct boolean {
+        bool value;
+    };
+    bool operator==( boolean a, boolean b ) { return a.value == b.value; }
+    bool operator!=( boolean a, boolean b ) { return a.value != b.value; }
+    std::ostream& operator<<( std::ostream& os, const boolean& b );
+
     struct JsonValue;
 
     struct array {
@@ -28,14 +35,16 @@ namespace pyjamas
 
     struct JsonValue
     {
-        using value_type = boost::variant< null, array >;
+        using value_type = boost::variant< null, boolean, array >;
 
         template< class T >
         JsonValue( value_type v ): value{ std::move( v )}
         {}
 
-        JsonValue( null  n ): value{ n } {}
-        JsonValue( array a ): value{ std::move( a )} {}
+        JsonValue( null    n ): value{ n } {}
+        JsonValue( bool    b ): value{ boolean{ b }} {}
+        JsonValue( boolean b ): value{ b } {}
+        JsonValue( array   a ): value{ std::move( a )} {}
 
         value_type value;
     };
