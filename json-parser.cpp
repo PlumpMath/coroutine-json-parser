@@ -190,6 +190,11 @@ bool operator!=( const array& a, const array& b )
     return !(a == b);
 }
 
+std::ostream& operator<<( std::ostream& os, null )
+{
+    return os << "null";
+}
+
 std::ostream& operator<<( std::ostream& os, const boolean& b )
 {
     return os << std::boolalpha << b.value;
@@ -214,20 +219,10 @@ std::ostream& operator<<( std::ostream& os, const array& arr )
 namespace {
     struct JsonValuePrinter
     {
-        // TODO: a single operator() template should suffice
-        void operator()( const array& v ) const
+        template< class T >
+        void operator()( const T& v ) const
         {
             *out << v;
-        }
-
-        void operator()( null ) const
-        {
-            *out << "null";
-        }
-
-        void operator()( boolean b ) const
-        {
-            *out << b;
         }
 
         std::ostream* out;

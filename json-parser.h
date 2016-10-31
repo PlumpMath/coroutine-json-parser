@@ -14,6 +14,7 @@ namespace pyjamas
     struct null {};
     bool operator==( null, null ) { return true; }
     bool operator!=( null, null ) { return false; }
+    std::ostream& operator<<( std::ostream& os, null );
 
     struct boolean {
         bool value;
